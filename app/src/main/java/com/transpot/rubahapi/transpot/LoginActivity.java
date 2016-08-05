@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -68,7 +69,7 @@ public class LoginActivity extends AppCompatActivity {
         } else {
             showProgress(true);
         }
-        //triggerAutoLogin();
+        triggerAutoLogin();
     }
 
     private void triggerAutoLogin(){
@@ -77,9 +78,14 @@ public class LoginActivity extends AppCompatActivity {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                mUsernameView.setText("Test First");
+                doStuff();
             }
         },3000);
+    }
+
+    private void doStuff(){
+        mUsernameView.setText("Test First");
+        Toast.makeText(this, "Delayed Toast!", Toast.LENGTH_SHORT).show();
         showProgress(false);
     }
 
