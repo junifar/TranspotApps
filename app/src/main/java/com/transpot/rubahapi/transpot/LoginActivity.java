@@ -3,6 +3,7 @@ package com.transpot.rubahapi.transpot;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.ProgressDialog;
 import android.os.Build;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +15,20 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.transpot.rubahapi.transpot.api.TranspotAPIService;
+import com.transpot.rubahapi.transpot.api.UserAPIService;
+import com.transpot.rubahapi.transpot.util.Const;
+import com.transpot.rubahapi.transpot.util.TranspotConst;
+
+import java.io.IOException;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 public class LoginActivity extends AppCompatActivity {
 
     private AutoCompleteTextView mUsernameView;
@@ -21,10 +36,16 @@ public class LoginActivity extends AppCompatActivity {
     private View mLoginFormView;
     private View mProgressView;
 
+    private Retrofit retrofit;
+    private Retrofit retrofitTranspot;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        initializeRetrofit();
 
         mUsernameView = (AutoCompleteTextView) findViewById(R.id.username);
         mPasswordView = (EditText) findViewById(R.id.password);
@@ -39,6 +60,18 @@ public class LoginActivity extends AppCompatActivity {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+    }
+
+    private void initializeRetrofit(){
+        retrofit = new Retrofit.Builder()
+                .baseUrl(Const.BASE_API_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        retrofitTranspot = new Retrofit.Builder()
+                .baseUrl(TranspotConst.BASE_API_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
     }
 
     private void validateLoginForm() {
@@ -86,7 +119,52 @@ public class LoginActivity extends AppCompatActivity {
     private void doStuff(){
         mUsernameView.setText("Test First");
         Toast.makeText(this, "Delayed Toast!", Toast.LENGTH_SHORT).show();
+//        getDataAsJSON();
+        getTokenAsJson();
         showProgress(false);
+    }
+
+    private void getTokenAsJson(){
+        TranspotAPIService apiService = retrofitTranspot.create(TranspotAPIService.class);
+        Call<ResponseBody>  result = apiService.getResultAsJSON1();
+        result.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                try {
+                    Toast.makeText(LoginActivity.this," Response version " + response.body().string(), Toast.LENGTH_SHORT).show();
+                    mUsernameView.setText(response.body().string());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                t.printStackTrace();
+            }
+        });
+    }
+
+    private void getDataAsJSON(){
+        UserAPIService apiService = retrofit.create(UserAPIService.class);
+        Call<ResponseBody> result = apiService.getResultAsJSON();
+        result.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+//                dialog.dismiss();
+                try {
+                    Toast.makeText(LoginActivity.this," response version "+response.body().string(),Toast.LENGTH_SHORT).show();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+//                dialog.dismiss();
+                t.printStackTrace();
+            }
+        });
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)

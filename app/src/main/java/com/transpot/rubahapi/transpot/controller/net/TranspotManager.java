@@ -15,6 +15,7 @@ import okhttp3.Cookie;
 import okhttp3.CookieJar;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
+import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -23,6 +24,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public class TranspotManager {
     private static final String BASE_URL = "http://localhost:8000/member";
+
+    private static final String LOGIN_URL = "http://localhost:8000/api-token-auth/";
 
     private static final TranspotManager instance = new TranspotManager();
 
@@ -74,5 +77,12 @@ public class TranspotManager {
                 .build()
                 .create(TranspotService.class);
 
+    }
+
+    private void loginToServer(){
+        HttpUrl url = HttpUrl.parse(LOGIN_URL).newBuilder()
+                .addQueryParameter("username", "admin")
+                .addQueryParameter("password","janganlagi1")
+                .build();
     }
 }

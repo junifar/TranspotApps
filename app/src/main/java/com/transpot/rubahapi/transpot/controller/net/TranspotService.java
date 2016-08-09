@@ -24,6 +24,9 @@ public interface TranspotService {
     @POST
     Call<ResponseBody> requestToken(@Url String url);
 
+    @POST("http://localhost:8000/api-token-auth/")
+    Call<LoginResponse> apiTokenAuth();
+
     class LoginValues {
 
         private String lt;
