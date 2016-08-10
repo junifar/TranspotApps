@@ -8,5 +8,5 @@ public class TranspotConst {
     private TranspotConst(){
 
     }
-    public static final String BASE_API_URL = "https://localhost:8000/";
+    public static final String BASE_API_URL = "http://192.168.20.251:8000/";
 }

@@ -3,11 +3,10 @@ package com.transpot.rubahapi.transpot;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.app.ProgressDialog;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
@@ -22,6 +21,10 @@ import com.transpot.rubahapi.transpot.util.TranspotConst;
 
 import java.io.IOException;
 
+import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -68,10 +71,59 @@ public class LoginActivity extends AppCompatActivity {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
+        OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
+//        getTokenInterceptor(httpClient,null);
+        getAuthInterceptor(httpClient);
+
+        OkHttpClient client = httpClient.build();
         retrofitTranspot = new Retrofit.Builder()
                 .baseUrl(TranspotConst.BASE_API_URL)
                 .addConverterFactory(GsonConverterFactory.create())
+                .client(client)
                 .build();
+    }
+
+    private OkHttpClient.Builder getAuthInterceptor(OkHttpClient.Builder httpClient){
+        httpClient.addInterceptor(new Interceptor() {
+            @Override
+            public okhttp3.Response intercept(Chain chain) throws IOException {
+                Request original = chain.request();
+                HttpUrl originalHttpUrl = original.url();
+
+                HttpUrl url = originalHttpUrl.newBuilder()
+                        .addQueryParameter("username","admin")
+                        .addQueryParameter("password","janganlagi1")
+                        .build();
+
+                Request.Builder requestBuilder = original.newBuilder().url(url);
+
+                Request request = requestBuilder.build();
+                return  chain.proceed(request);
+            }
+        });
+
+        return  httpClient;
+    }
+
+    private OkHttpClient.Builder getTokenInterceptor(OkHttpClient.Builder httpClient, String Token){
+        if (Token == null){
+            Token = "59463fb9d779338793cca456fd22ef8d05acbeea";
+        }
+        final String finalToken = Token;
+        httpClient.addInterceptor(new Interceptor() {
+            @Override
+            public okhttp3.Response intercept(Chain chain) throws IOException {
+                Request original = chain.request();
+
+                Request request = original.newBuilder()
+                        .header("Authorization","Token "+ finalToken)
+                        .method(original.method(),original.body())
+                        .build();
+
+                return  chain.proceed(request);
+            }
+        });
+        return httpClient;
     }
 
     private void validateLoginForm() {
@@ -121,18 +173,22 @@ public class LoginActivity extends AppCompatActivity {
         Toast.makeText(this, "Delayed Toast!", Toast.LENGTH_SHORT).show();
 //        getDataAsJSON();
         getTokenAsJson();
+//        getCarJsonData();
         showProgress(false);
     }
 
     private void getTokenAsJson(){
         TranspotAPIService apiService = retrofitTranspot.create(TranspotAPIService.class);
-        Call<ResponseBody>  result = apiService.getResultAsJSON1();
+
+        Call<ResponseBody>  result = apiService.getResultAsJSON("admin", "janganlagi1");
         result.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+//                System.out.println("Response status code: " + response.code());
+//                Toast.makeText(LoginActivity.this," Response version " + response.code(), Toast.LENGTH_SHORT).show();
                 try {
                     Toast.makeText(LoginActivity.this," Response version " + response.body().string(), Toast.LENGTH_SHORT).show();
-                    mUsernameView.setText(response.body().string());
+//                    mUsernameView.setText(response.body().string());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -140,6 +196,29 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
+//                Toast.makeText(LoginActivity.this," Error Response version " + t.toString(), Toast.LENGTH_SHORT).show();
+//                mUsernameView.setText(t.toString());
+                t.printStackTrace();
+            }
+        });
+    }
+
+    private void getCarJsonData(){
+        TranspotAPIService apiService = retrofitTranspot.create(TranspotAPIService.class);
+        Call<ResponseBody> result = apiService.getResultCar();
+        result.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                try {
+                    Toast.makeText(LoginActivity.this," response version "+response.body().string(),Toast.LENGTH_SHORT).show();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                mUsernameView.setText(t.toString());
                 t.printStackTrace();
             }
         });
