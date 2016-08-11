@@ -16,7 +16,7 @@ import android.widget.Toast;
 
 import com.transpot.rubahapi.transpot.api.TranspotAPIService;
 import com.transpot.rubahapi.transpot.api.UserAPIService;
-import com.transpot.rubahapi.transpot.util.Const;
+import com.transpot.rubahapi.transpot.model.serialized.SerializedToken;
 import com.transpot.rubahapi.transpot.util.TranspotConst;
 
 import java.io.IOException;
@@ -66,65 +66,84 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void initializeRetrofit(){
-        retrofit = new Retrofit.Builder()
-                .baseUrl(Const.BASE_API_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+        /**
+         * NOTE : this code is still use for sample
+         * */
+        //        retrofit = new Retrofit.Builder()
+        //                .baseUrl(Const.BASE_API_URL)
+        //                .addConverterFactory(GsonConverterFactory.create())
+        //                .build();
 
-        OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
-//        getTokenInterceptor(httpClient,null);
-        getAuthInterceptor(httpClient);
+        /**
+         * NOTE : this code is still use for sample
+         * */
+        //        OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
+        //        getTokenInterceptor(httpClient,null);
+        //        getAuthInterceptor(httpClient);
 
-        OkHttpClient client = httpClient.build();
+        //        OkHttpClient client = httpClient.build();
+
+        //        retrofitTranspot = new Retrofit.Builder()
+        //                .baseUrl(TranspotConst.BASE_API_URL)
+        //                .addConverterFactory(GsonConverterFactory.create())
+        //                .client(client)
+        //                .build();
+
         retrofitTranspot = new Retrofit.Builder()
                 .baseUrl(TranspotConst.BASE_API_URL)
                 .addConverterFactory(GsonConverterFactory.create())
-                .client(client)
                 .build();
     }
 
-    private OkHttpClient.Builder getAuthInterceptor(OkHttpClient.Builder httpClient){
-        httpClient.addInterceptor(new Interceptor() {
-            @Override
-            public okhttp3.Response intercept(Chain chain) throws IOException {
-                Request original = chain.request();
-                HttpUrl originalHttpUrl = original.url();
 
-                HttpUrl url = originalHttpUrl.newBuilder()
-                        .addQueryParameter("username","admin")
-                        .addQueryParameter("password","janganlagi1")
-                        .build();
+    /**
+     * NOTE : this code is still use for sample
+     * */
+    //    private OkHttpClient.Builder getAuthInterceptor(OkHttpClient.Builder httpClient){
+    //        httpClient.addInterceptor(new Interceptor() {
+    //            @Override
+    //            public okhttp3.Response intercept(Chain chain) throws IOException {
+    //                Request original = chain.request();
+    //                HttpUrl originalHttpUrl = original.url();
+    //
+    //                HttpUrl url = originalHttpUrl.newBuilder()
+    //                        .addQueryParameter("username","admin")
+    //                        .addQueryParameter("password","janganlagi1")
+    //                        .build();
+    //
+    //                Request.Builder requestBuilder = original.newBuilder().url(url);
+    //
+    //                Request request = requestBuilder.build();
+    //                return  chain.proceed(request);
+    //            }
+    //        });
+    //
+    //        return  httpClient;
+    //    }
 
-                Request.Builder requestBuilder = original.newBuilder().url(url);
-
-                Request request = requestBuilder.build();
-                return  chain.proceed(request);
-            }
-        });
-
-        return  httpClient;
-    }
-
-    private OkHttpClient.Builder getTokenInterceptor(OkHttpClient.Builder httpClient, String Token){
-        if (Token == null){
-            Token = "59463fb9d779338793cca456fd22ef8d05acbeea";
-        }
-        final String finalToken = Token;
-        httpClient.addInterceptor(new Interceptor() {
-            @Override
-            public okhttp3.Response intercept(Chain chain) throws IOException {
-                Request original = chain.request();
-
-                Request request = original.newBuilder()
-                        .header("Authorization","Token "+ finalToken)
-                        .method(original.method(),original.body())
-                        .build();
-
-                return  chain.proceed(request);
-            }
-        });
-        return httpClient;
-    }
+    /**
+     * NOTE : this code is still use for sample
+     * */
+    //    private OkHttpClient.Builder getTokenInterceptor(OkHttpClient.Builder httpClient, String Token){
+    //        if (Token == null){
+    //            Token = "59463fb9d779338793cca456fd22ef8d05acbeea";
+    //        }
+    //        final String finalToken = Token;
+    //        httpClient.addInterceptor(new Interceptor() {
+    //            @Override
+    //            public okhttp3.Response intercept(Chain chain) throws IOException {
+    //                Request original = chain.request();
+    //
+    //                Request request = original.newBuilder()
+    //                        .header("Authorization","Token "+ finalToken)
+    //                        .method(original.method(),original.body())
+    //                        .build();
+    //
+    //                return  chain.proceed(request);
+    //            }
+    //        });
+    //        return httpClient;
+    //    }
 
     private void validateLoginForm() {
 
@@ -158,7 +177,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void triggerAutoLogin(){
-//        mUsernameView.setText("Test Dulu");
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
@@ -171,80 +189,102 @@ public class LoginActivity extends AppCompatActivity {
     private void doStuff(){
         mUsernameView.setText("Test First");
         Toast.makeText(this, "Delayed Toast!", Toast.LENGTH_SHORT).show();
-//        getDataAsJSON();
-        getTokenAsJson();
-//        getCarJsonData();
+        getToken();
         showProgress(false);
     }
 
-    private void getTokenAsJson(){
+    private void getToken(){
         TranspotAPIService apiService = retrofitTranspot.create(TranspotAPIService.class);
 
-        Call<ResponseBody>  result = apiService.getResultAsJSON("admin", "janganlagi1");
-        result.enqueue(new Callback<ResponseBody>() {
+        final Call<SerializedToken> result = apiService.getToken("admin", "janganlagi1");
+        result.enqueue(new Callback<SerializedToken>() {
             @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-//                System.out.println("Response status code: " + response.code());
-//                Toast.makeText(LoginActivity.this," Response version " + response.code(), Toast.LENGTH_SHORT).show();
+            public void onResponse(Call<SerializedToken> call, Response<SerializedToken> response) {
                 try {
-                    Toast.makeText(LoginActivity.this," Response version " + response.body().string(), Toast.LENGTH_SHORT).show();
-//                    mUsernameView.setText(response.body().string());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-//                Toast.makeText(LoginActivity.this," Error Response version " + t.toString(), Toast.LENGTH_SHORT).show();
-//                mUsernameView.setText(t.toString());
-                t.printStackTrace();
-            }
-        });
-    }
-
-    private void getCarJsonData(){
-        TranspotAPIService apiService = retrofitTranspot.create(TranspotAPIService.class);
-        Call<ResponseBody> result = apiService.getResultCar();
-        result.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                try {
-                    Toast.makeText(LoginActivity.this," response version "+response.body().string(),Toast.LENGTH_SHORT).show();
+                    mUsernameView.setText(response.body().getToken().toString());
                 }catch (Exception e){
                     e.printStackTrace();
                 }
             }
 
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
+            public void onFailure(Call<SerializedToken> call, Throwable t) {
                 mUsernameView.setText(t.toString());
                 t.printStackTrace();
             }
         });
     }
 
-    private void getDataAsJSON(){
-        UserAPIService apiService = retrofit.create(UserAPIService.class);
-        Call<ResponseBody> result = apiService.getResultAsJSON();
-        result.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-//                dialog.dismiss();
-                try {
-                    Toast.makeText(LoginActivity.this," response version "+response.body().string(),Toast.LENGTH_SHORT).show();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
+    /**
+     * NOTE : this code is still use for sample
+     * */
+    //    private void getTokenAsJson(){
+    //        TranspotAPIService apiService = retrofitTranspot.create(TranspotAPIService.class);
+    //
+    //        Call<ResponseBody>  result = apiService.getResultAsJSON("admin", "janganlagi1");
+    //        result.enqueue(new Callback<ResponseBody>() {
+    //            @Override
+    //            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+    //                try {
+    //                    Toast.makeText(LoginActivity.this," Response version " + response.body().string(), Toast.LENGTH_SHORT).show();
+    //                } catch (IOException e) {
+    //                    e.printStackTrace();
+    //                }
+    //            }
+    //
+    //            @Override
+    //            public void onFailure(Call<ResponseBody> call, Throwable t) {
+    //                t.printStackTrace();
+    //            }
+    //        });
+    //    }
 
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-//                dialog.dismiss();
-                t.printStackTrace();
-            }
-        });
-    }
+    /**
+     * NOTE : this code is still use for sample
+     * */
+    //    private void getCarJsonData(){
+    //        TranspotAPIService apiService = retrofitTranspot.create(TranspotAPIService.class);
+    //        Call<ResponseBody> result = apiService.getResultCar();
+    //        result.enqueue(new Callback<ResponseBody>() {
+    //            @Override
+    //            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+    //                try {
+    //                    Toast.makeText(LoginActivity.this," response version "+response.body().string(),Toast.LENGTH_SHORT).show();
+    //                }catch (Exception e){
+    //                    e.printStackTrace();
+    //                }
+    //            }
+    //
+    //            @Override
+    //            public void onFailure(Call<ResponseBody> call, Throwable t) {
+    //                mUsernameView.setText(t.toString());
+    //                t.printStackTrace();
+    //            }
+    //        });
+    //    }
+
+    /**
+     * NOTE : this code is still use for sample
+     * */
+    //    private void getDataAsJSON(){
+    //        UserAPIService apiService = retrofit.create(UserAPIService.class);
+    //        Call<ResponseBody> result = apiService.getResultAsJSON();
+    //        result.enqueue(new Callback<ResponseBody>() {
+    //            @Override
+    //            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+    //                try {
+    //                    Toast.makeText(LoginActivity.this," response version "+response.body().string(),Toast.LENGTH_SHORT).show();
+    //                }catch (Exception e){
+    //                    e.printStackTrace();
+    //                }
+    //            }
+    //
+    //            @Override
+    //            public void onFailure(Call<ResponseBody> call, Throwable t) {
+    //                t.printStackTrace();
+    //            }
+    //        });
+    //    }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     private void showProgress(final boolean show) {

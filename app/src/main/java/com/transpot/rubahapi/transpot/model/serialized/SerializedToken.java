@@ -1,12 +1,12 @@
-package com.transpot.rubahapi.transpot.model.info;
+package com.transpot.rubahapi.transpot.model.serialized;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Created by prasetia on 8/9/2016.
+ * Created by prasetia on 8/10/2016.
  */
-public class AuthAPIInfo {
+public class SerializedToken {
     @SerializedName("token")
     @Expose
     private String token;
